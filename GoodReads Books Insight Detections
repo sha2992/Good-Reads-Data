@@ -1,1 +1,1130 @@
-{"metadata":{"kernelspec":{"language":"python","display_name":"Python 3","name":"python3"},"language_info":{"name":"python","version":"3.10.13","mimetype":"text/x-python","codemirror_mode":{"name":"ipython","version":3},"pygments_lexer":"ipython3","nbconvert_exporter":"python","file_extension":".py"},"kaggle":{"accelerator":"none","dataSources":[{"sourceId":8149618,"sourceType":"datasetVersion","datasetId":4819741}],"dockerImageVersionId":30698,"isInternetEnabled":true,"language":"python","sourceType":"notebook","isGpuEnabled":false}},"nbformat_minor":4,"nbformat":4,"cells":[{"cell_type":"code","source":"# This Python 3 environment comes with many helpful analytics libraries installed\n# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n# For example, here's several helpful packages to load\n\nimport numpy as np # linear algebra\nimport pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n\n# Input data files are available in the read-only \"../input/\" directory\n# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n\nimport os\nfor dirname, _, filenames in os.walk('/kaggle/input'):\n    for filename in filenames:\n        print(os.path.join(dirname, filename))\n\n# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session","metadata":{"_uuid":"8f2839f25d086af736a60e9eeb907d3b93b6e0e5","_cell_guid":"b1076dfc-b9ad-4769-8c92-a6c4dae69d19","execution":{"iopub.status.busy":"2024-04-21T16:39:16.665124Z","iopub.execute_input":"2024-04-21T16:39:16.665898Z","iopub.status.idle":"2024-04-21T16:39:17.633981Z","shell.execute_reply.started":"2024-04-21T16:39:16.665863Z","shell.execute_reply":"2024-04-21T16:39:17.632826Z"},"trusted":true},"execution_count":1,"outputs":[{"name":"stdout","text":"/kaggle/input/good-reads-top-1000-books/good_reads_top_1000_books.csv\n","output_type":"stream"}]},{"cell_type":"code","source":"books_df = pd.read_csv('/kaggle/input/good-reads-top-1000-books/good_reads_top_1000_books.csv')","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.636514Z","iopub.execute_input":"2024-04-21T16:39:17.637309Z","iopub.status.idle":"2024-04-21T16:39:17.661443Z","shell.execute_reply.started":"2024-04-21T16:39:17.637276Z","shell.execute_reply":"2024-04-21T16:39:17.660136Z"},"trusted":true},"execution_count":2,"outputs":[]},{"cell_type":"code","source":"books_df.head()","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.663067Z","iopub.execute_input":"2024-04-21T16:39:17.663484Z","iopub.status.idle":"2024-04-21T16:39:17.688612Z","shell.execute_reply.started":"2024-04-21T16:39:17.663449Z","shell.execute_reply":"2024-04-21T16:39:17.687462Z"},"trusted":true},"execution_count":3,"outputs":[{"execution_count":3,"output_type":"execute_result","data":{"text/plain":"                                           Book Name               Author  \\\n0                              To Kill a Mockingbird           Harper Lee   \n1                                               1984        George Orwell   \n2                                Pride and Prejudice          Jane Austen   \n3  Harry Potter and the Sorcerer's Stone (Harry P...         J.K. Rowling   \n4                                   The Great Gatsby  F. Scott Fitzgerald   \n\n   Average Rating  Number of Ratings  Score on Goodreads  \n0            4.26            6129090             17358.0  \n1            4.19            4604557             15474.0  \n2            4.29            4273146             15135.0  \n3            4.47           10063128             12440.0  \n4            3.93            5244056             10828.0  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Book Name</th>\n      <th>Author</th>\n      <th>Average Rating</th>\n      <th>Number of Ratings</th>\n      <th>Score on Goodreads</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>To Kill a Mockingbird</td>\n      <td>Harper Lee</td>\n      <td>4.26</td>\n      <td>6129090</td>\n      <td>17358.0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>1984</td>\n      <td>George Orwell</td>\n      <td>4.19</td>\n      <td>4604557</td>\n      <td>15474.0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>Pride and Prejudice</td>\n      <td>Jane Austen</td>\n      <td>4.29</td>\n      <td>4273146</td>\n      <td>15135.0</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>Harry Potter and the Sorcerer's Stone (Harry P...</td>\n      <td>J.K. Rowling</td>\n      <td>4.47</td>\n      <td>10063128</td>\n      <td>12440.0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>The Great Gatsby</td>\n      <td>F. Scott Fitzgerald</td>\n      <td>3.93</td>\n      <td>5244056</td>\n      <td>10828.0</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"books_df.info()","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.691089Z","iopub.execute_input":"2024-04-21T16:39:17.691419Z","iopub.status.idle":"2024-04-21T16:39:17.714479Z","shell.execute_reply.started":"2024-04-21T16:39:17.691378Z","shell.execute_reply":"2024-04-21T16:39:17.713305Z"},"trusted":true},"execution_count":4,"outputs":[{"name":"stdout","text":"<class 'pandas.core.frame.DataFrame'>\nRangeIndex: 1017 entries, 0 to 1016\nData columns (total 5 columns):\n #   Column              Non-Null Count  Dtype  \n---  ------              --------------  -----  \n 0   Book Name           1017 non-null   object \n 1   Author              1017 non-null   object \n 2   Average Rating      1017 non-null   float64\n 3   Number of Ratings   1017 non-null   int64  \n 4   Score on Goodreads  1017 non-null   float64\ndtypes: float64(2), int64(1), object(2)\nmemory usage: 39.9+ KB\n","output_type":"stream"}]},{"cell_type":"code","source":"books_df.shape","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.715929Z","iopub.execute_input":"2024-04-21T16:39:17.716302Z","iopub.status.idle":"2024-04-21T16:39:17.724162Z","shell.execute_reply.started":"2024-04-21T16:39:17.716268Z","shell.execute_reply":"2024-04-21T16:39:17.722277Z"},"trusted":true},"execution_count":5,"outputs":[{"execution_count":5,"output_type":"execute_result","data":{"text/plain":"(1017, 5)"},"metadata":{}}]},{"cell_type":"code","source":"books_df.isnull().sum()","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.725764Z","iopub.execute_input":"2024-04-21T16:39:17.726140Z","iopub.status.idle":"2024-04-21T16:39:17.737243Z","shell.execute_reply.started":"2024-04-21T16:39:17.726105Z","shell.execute_reply":"2024-04-21T16:39:17.736122Z"},"trusted":true},"execution_count":6,"outputs":[{"execution_count":6,"output_type":"execute_result","data":{"text/plain":"Book Name             0\nAuthor                0\nAverage Rating        0\nNumber of Ratings     0\nScore on Goodreads    0\ndtype: int64"},"metadata":{}}]},{"cell_type":"code","source":"print(\"No. of Author in the list:\", books_df.Author.nunique())","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.738991Z","iopub.execute_input":"2024-04-21T16:39:17.739446Z","iopub.status.idle":"2024-04-21T16:39:17.747435Z","shell.execute_reply.started":"2024-04-21T16:39:17.739388Z","shell.execute_reply":"2024-04-21T16:39:17.746311Z"},"trusted":true},"execution_count":7,"outputs":[{"name":"stdout","text":"No. of Author in the list: 685\n","output_type":"stream"}]},{"cell_type":"code","source":"optional = books_df.groupby('Author')['Book Name'].agg(No_Books='count')#.sort_values(ascending=False)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.748740Z","iopub.execute_input":"2024-04-21T16:39:17.749620Z","iopub.status.idle":"2024-04-21T16:39:17.759122Z","shell.execute_reply.started":"2024-04-21T16:39:17.749581Z","shell.execute_reply":"2024-04-21T16:39:17.758045Z"},"trusted":true},"execution_count":8,"outputs":[]},{"cell_type":"code","source":"optional = optional[optional['No_Books']>3]","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.760651Z","iopub.execute_input":"2024-04-21T16:39:17.761104Z","iopub.status.idle":"2024-04-21T16:39:17.768732Z","shell.execute_reply.started":"2024-04-21T16:39:17.761070Z","shell.execute_reply":"2024-04-21T16:39:17.767803Z"},"trusted":true},"execution_count":9,"outputs":[]},{"cell_type":"code","source":"Top_Writers_list=optional.index.tolist()\nTop_Writers_list","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.772940Z","iopub.execute_input":"2024-04-21T16:39:17.773342Z","iopub.status.idle":"2024-04-21T16:39:17.783845Z","shell.execute_reply.started":"2024-04-21T16:39:17.773309Z","shell.execute_reply":"2024-04-21T16:39:17.782753Z"},"trusted":true},"execution_count":10,"outputs":[{"execution_count":10,"output_type":"execute_result","data":{"text/plain":"['Agatha Christie',\n 'André Gide',\n 'Anthony Powell',\n 'Charles Dickens',\n 'Cormac McCarthy',\n 'D.H. Lawrence',\n 'Dashiell Hammett',\n 'Elizabeth Gaskell',\n 'Evelyn Waugh',\n 'Fyodor Dostoevsky',\n 'George Eliot',\n 'Graham Greene',\n 'H.G. Wells',\n 'Henry James',\n 'Honoré de Balzac',\n 'J.G. Ballard',\n 'Jane Austen',\n 'John Updike',\n 'Joseph Conrad',\n 'Mark Twain',\n 'Michael Dibdin',\n 'Muriel Spark',\n 'P.G. Wodehouse',\n 'Saul Bellow',\n 'Thomas Hardy',\n 'Thomas Mann',\n 'Thomas Pynchon',\n 'Tobias Smollett',\n 'Ursula K. Le Guin',\n 'Vladimir Nabokov',\n 'Willa Cather',\n 'Émile Zola']"},"metadata":{}}]},{"cell_type":"code","source":"len(Top_Writers_list)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.785295Z","iopub.execute_input":"2024-04-21T16:39:17.785681Z","iopub.status.idle":"2024-04-21T16:39:17.796496Z","shell.execute_reply.started":"2024-04-21T16:39:17.785648Z","shell.execute_reply":"2024-04-21T16:39:17.795447Z"},"trusted":true},"execution_count":11,"outputs":[{"execution_count":11,"output_type":"execute_result","data":{"text/plain":"32"},"metadata":{}}]},{"cell_type":"code","source":"Books_of_topWriters = books_df[books_df['Author'].isin(Top_Writers_list)].reset_index()","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.797709Z","iopub.execute_input":"2024-04-21T16:39:17.798111Z","iopub.status.idle":"2024-04-21T16:39:17.810377Z","shell.execute_reply.started":"2024-04-21T16:39:17.798076Z","shell.execute_reply":"2024-04-21T16:39:17.809366Z"},"trusted":true},"execution_count":12,"outputs":[]},{"cell_type":"code","source":"Books_of_topWriters.head()","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.811697Z","iopub.execute_input":"2024-04-21T16:39:17.812423Z","iopub.status.idle":"2024-04-21T16:39:17.829454Z","shell.execute_reply.started":"2024-04-21T16:39:17.812368Z","shell.execute_reply":"2024-04-21T16:39:17.828249Z"},"trusted":true},"execution_count":13,"outputs":[{"execution_count":13,"output_type":"execute_result","data":{"text/plain":"   index                           Book Name             Author  \\\n0      2                 Pride and Prejudice        Jane Austen   \n1     15                Crime and Punishment  Fyodor Dostoevsky   \n2     20  The Adventures of Huckleberry Finn         Mark Twain   \n3     23                  Great Expectations    Charles Dickens   \n4     32               Sense and Sensibility        Jane Austen   \n\n   Average Rating  Number of Ratings  Score on Goodreads  \n0            4.29            4273146             15135.0  \n1            4.27             905025              7116.0  \n2            3.83            1266004              6432.0  \n3            3.79             803182              5961.0  \n4            4.08            1190719              4828.0  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>index</th>\n      <th>Book Name</th>\n      <th>Author</th>\n      <th>Average Rating</th>\n      <th>Number of Ratings</th>\n      <th>Score on Goodreads</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>0</th>\n      <td>2</td>\n      <td>Pride and Prejudice</td>\n      <td>Jane Austen</td>\n      <td>4.29</td>\n      <td>4273146</td>\n      <td>15135.0</td>\n    </tr>\n    <tr>\n      <th>1</th>\n      <td>15</td>\n      <td>Crime and Punishment</td>\n      <td>Fyodor Dostoevsky</td>\n      <td>4.27</td>\n      <td>905025</td>\n      <td>7116.0</td>\n    </tr>\n    <tr>\n      <th>2</th>\n      <td>20</td>\n      <td>The Adventures of Huckleberry Finn</td>\n      <td>Mark Twain</td>\n      <td>3.83</td>\n      <td>1266004</td>\n      <td>6432.0</td>\n    </tr>\n    <tr>\n      <th>3</th>\n      <td>23</td>\n      <td>Great Expectations</td>\n      <td>Charles Dickens</td>\n      <td>3.79</td>\n      <td>803182</td>\n      <td>5961.0</td>\n    </tr>\n    <tr>\n      <th>4</th>\n      <td>32</td>\n      <td>Sense and Sensibility</td>\n      <td>Jane Austen</td>\n      <td>4.08</td>\n      <td>1190719</td>\n      <td>4828.0</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"All_booksMeanRate = books_df['Average Rating'].mean()\ntopWriters_booksMeanRate = Books_of_topWriters['Average Rating'].mean()\n\nprint('Mean Rating of All Books:', All_booksMeanRate)\nprint('Mean Rating of Books from Top Writers:', topWriters_booksMeanRate)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.831242Z","iopub.execute_input":"2024-04-21T16:39:17.831991Z","iopub.status.idle":"2024-04-21T16:39:17.848001Z","shell.execute_reply.started":"2024-04-21T16:39:17.831953Z","shell.execute_reply":"2024-04-21T16:39:17.846820Z"},"trusted":true},"execution_count":14,"outputs":[{"name":"stdout","text":"Mean Rating of All Books: 3.867099311701082\nMean Rating of Books from Top Writers: 3.8641772151898732\n","output_type":"stream"}]},{"cell_type":"code","source":"MaxRating_AllBooks = books_df['Average Rating'].max()\nMaxRating_Books_topWriters=Books_of_topWriters['Average Rating'].max()\n\nprint('Max Rating of All Books:', MaxRating_AllBooks)\nprint('Max Rating of Books from Top Writers:', MaxRating_Books_topWriters)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.849458Z","iopub.execute_input":"2024-04-21T16:39:17.850320Z","iopub.status.idle":"2024-04-21T16:39:17.860953Z","shell.execute_reply.started":"2024-04-21T16:39:17.850285Z","shell.execute_reply":"2024-04-21T16:39:17.859835Z"},"trusted":true},"execution_count":15,"outputs":[{"name":"stdout","text":"Max Rating of All Books: 4.6\nMax Rating of Books from Top Writers: 4.41\n","output_type":"stream"}]},{"cell_type":"code","source":"MinRating_AllBooks = books_df['Average Rating'].min()\nMinRating_Books_topWriters=Books_of_topWriters['Average Rating'].min()\n\nprint('Min Rating of All Books:', MinRating_AllBooks)\nprint('Min Rating of Books from Top Writers:', MinRating_Books_topWriters)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.862454Z","iopub.execute_input":"2024-04-21T16:39:17.863151Z","iopub.status.idle":"2024-04-21T16:39:17.876044Z","shell.execute_reply.started":"2024-04-21T16:39:17.863115Z","shell.execute_reply":"2024-04-21T16:39:17.874788Z"},"trusted":true},"execution_count":16,"outputs":[{"name":"stdout","text":"Min Rating of All Books: 2.71\nMin Rating of Books from Top Writers: 3.23\n","output_type":"stream"}]},{"cell_type":"code","source":"Highest_RatedBook = books_df[books_df['Average Rating']==MaxRating_AllBooks]['Book Name'].values[0]\nWriter_of_HighestRatedBook = books_df[books_df['Average Rating']==MaxRating_AllBooks]['Author'].values[0]\n\nprint(\"Name of the highest Rated Book:\",Highest_RatedBook)\nprint(\"Author of the highest Rated Book:\", Writer_of_HighestRatedBook)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.877378Z","iopub.execute_input":"2024-04-21T16:39:17.877729Z","iopub.status.idle":"2024-04-21T16:39:17.888556Z","shell.execute_reply.started":"2024-04-21T16:39:17.877703Z","shell.execute_reply":"2024-04-21T16:39:17.887536Z"},"trusted":true},"execution_count":17,"outputs":[{"name":"stdout","text":"Name of the highest Rated Book: The Devil to Pay in the Backlands\nAuthor of the highest Rated Book: João Guimarães Rosa\n","output_type":"stream"}]},{"cell_type":"code","source":"books_df[books_df['Author']==Writer_of_HighestRatedBook]","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:39:17.889905Z","iopub.execute_input":"2024-04-21T16:39:17.890204Z","iopub.status.idle":"2024-04-21T16:39:17.905460Z","shell.execute_reply.started":"2024-04-21T16:39:17.890180Z","shell.execute_reply":"2024-04-21T16:39:17.904545Z"},"trusted":true},"execution_count":18,"outputs":[{"execution_count":18,"output_type":"execute_result","data":{"text/plain":"                             Book Name               Author  Average Rating  \\\n944  The Devil to Pay in the Backlands  João Guimarães Rosa             4.6   \n\n     Number of Ratings  Score on Goodreads  \n944               5382                25.0  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Book Name</th>\n      <th>Author</th>\n      <th>Average Rating</th>\n      <th>Number of Ratings</th>\n      <th>Score on Goodreads</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>944</th>\n      <td>The Devil to Pay in the Backlands</td>\n      <td>João Guimarães Rosa</td>\n      <td>4.6</td>\n      <td>5382</td>\n      <td>25.0</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]},{"cell_type":"code","source":"Lowest_RatedBook = books_df[books_df['Average Rating']==MinRating_AllBooks]['Book Name'].values[0]\nWriter_of_LowestRatedBook = books_df[books_df['Average Rating']==MinRating_AllBooks]['Author'].values[0]\n\nprint(\"Name of the highest Rated Book:\",Lowest_RatedBook)\nprint(\"Author of the highest Rated Book:\", Writer_of_LowestRatedBook)","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:41:28.253453Z","iopub.execute_input":"2024-04-21T16:41:28.254396Z","iopub.status.idle":"2024-04-21T16:41:28.262135Z","shell.execute_reply.started":"2024-04-21T16:41:28.254358Z","shell.execute_reply":"2024-04-21T16:41:28.261078Z"},"trusted":true},"execution_count":20,"outputs":[{"name":"stdout","text":"Name of the highest Rated Book: Moon Over Africa\nAuthor of the highest Rated Book: Ida Pollock\n","output_type":"stream"}]},{"cell_type":"code","source":"books_df[books_df['Author']==Writer_of_LowestRatedBook]","metadata":{"execution":{"iopub.status.busy":"2024-04-21T16:41:33.871375Z","iopub.execute_input":"2024-04-21T16:41:33.871780Z","iopub.status.idle":"2024-04-21T16:41:33.885782Z","shell.execute_reply.started":"2024-04-21T16:41:33.871747Z","shell.execute_reply":"2024-04-21T16:41:33.884488Z"},"trusted":true},"execution_count":21,"outputs":[{"execution_count":21,"output_type":"execute_result","data":{"text/plain":"            Book Name       Author  Average Rating  Number of Ratings  \\\n600  Moon Over Africa  Ida Pollock            2.71                 21   \n\n     Score on Goodreads  \n600                97.0  ","text/html":"<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>Book Name</th>\n      <th>Author</th>\n      <th>Average Rating</th>\n      <th>Number of Ratings</th>\n      <th>Score on Goodreads</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>600</th>\n      <td>Moon Over Africa</td>\n      <td>Ida Pollock</td>\n      <td>2.71</td>\n      <td>21</td>\n      <td>97.0</td>\n    </tr>\n  </tbody>\n</table>\n</div>"},"metadata":{}}]}]}
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "897b5aa6",
+   "metadata": {
+    "_cell_guid": "b1076dfc-b9ad-4769-8c92-a6c4dae69d19",
+    "_uuid": "8f2839f25d086af736a60e9eeb907d3b93b6e0e5",
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:03.691778Z",
+     "iopub.status.busy": "2024-04-21T16:49:03.691181Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.695591Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.694293Z"
+    },
+    "papermill": {
+     "duration": 1.015374,
+     "end_time": "2024-04-21T16:49:04.698054",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:03.682680",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/kaggle/input/good-reads-top-1000-books/good_reads_top_1000_books.csv\n"
+     ]
+    }
+   ],
+   "source": [
+    "# This Python 3 environment comes with many helpful analytics libraries installed\n",
+    "# It is defined by the kaggle/python Docker image: https://github.com/kaggle/docker-python\n",
+    "# For example, here's several helpful packages to load\n",
+    "\n",
+    "import numpy as np # linear algebra\n",
+    "import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)\n",
+    "\n",
+    "# Input data files are available in the read-only \"../input/\" directory\n",
+    "# For example, running this (by clicking run or pressing Shift+Enter) will list all files under the input directory\n",
+    "\n",
+    "import os\n",
+    "for dirname, _, filenames in os.walk('/kaggle/input'):\n",
+    "    for filename in filenames:\n",
+    "        print(os.path.join(dirname, filename))\n",
+    "\n",
+    "# You can write up to 20GB to the current directory (/kaggle/working/) that gets preserved as output when you create a version using \"Save & Run All\" \n",
+    "# You can also write temporary files to /kaggle/temp/, but they won't be saved outside of the current session"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "1f5433f0",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.711864Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.711385Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.734704Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.733429Z"
+    },
+    "papermill": {
+     "duration": 0.033376,
+     "end_time": "2024-04-21T16:49:04.737509",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.704133",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "books_df = pd.read_csv('/kaggle/input/good-reads-top-1000-books/good_reads_top_1000_books.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "35194076",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.751115Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.750323Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.778082Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.776433Z"
+    },
+    "papermill": {
+     "duration": 0.037284,
+     "end_time": "2024-04-21T16:49:04.780700",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.743416",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Book Name</th>\n",
+       "      <th>Author</th>\n",
+       "      <th>Average Rating</th>\n",
+       "      <th>Number of Ratings</th>\n",
+       "      <th>Score on Goodreads</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>To Kill a Mockingbird</td>\n",
+       "      <td>Harper Lee</td>\n",
+       "      <td>4.26</td>\n",
+       "      <td>6129090</td>\n",
+       "      <td>17358.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1984</td>\n",
+       "      <td>George Orwell</td>\n",
+       "      <td>4.19</td>\n",
+       "      <td>4604557</td>\n",
+       "      <td>15474.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Pride and Prejudice</td>\n",
+       "      <td>Jane Austen</td>\n",
+       "      <td>4.29</td>\n",
+       "      <td>4273146</td>\n",
+       "      <td>15135.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Harry Potter and the Sorcerer's Stone (Harry P...</td>\n",
+       "      <td>J.K. Rowling</td>\n",
+       "      <td>4.47</td>\n",
+       "      <td>10063128</td>\n",
+       "      <td>12440.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>The Great Gatsby</td>\n",
+       "      <td>F. Scott Fitzgerald</td>\n",
+       "      <td>3.93</td>\n",
+       "      <td>5244056</td>\n",
+       "      <td>10828.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                           Book Name               Author  \\\n",
+       "0                              To Kill a Mockingbird           Harper Lee   \n",
+       "1                                               1984        George Orwell   \n",
+       "2                                Pride and Prejudice          Jane Austen   \n",
+       "3  Harry Potter and the Sorcerer's Stone (Harry P...         J.K. Rowling   \n",
+       "4                                   The Great Gatsby  F. Scott Fitzgerald   \n",
+       "\n",
+       "   Average Rating  Number of Ratings  Score on Goodreads  \n",
+       "0            4.26            6129090             17358.0  \n",
+       "1            4.19            4604557             15474.0  \n",
+       "2            4.29            4273146             15135.0  \n",
+       "3            4.47           10063128             12440.0  \n",
+       "4            3.93            5244056             10828.0  "
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "books_df.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "501510a5",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.795485Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.794775Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.822582Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.821435Z"
+    },
+    "papermill": {
+     "duration": 0.038107,
+     "end_time": "2024-04-21T16:49:04.825043",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.786936",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 1017 entries, 0 to 1016\n",
+      "Data columns (total 5 columns):\n",
+      " #   Column              Non-Null Count  Dtype  \n",
+      "---  ------              --------------  -----  \n",
+      " 0   Book Name           1017 non-null   object \n",
+      " 1   Author              1017 non-null   object \n",
+      " 2   Average Rating      1017 non-null   float64\n",
+      " 3   Number of Ratings   1017 non-null   int64  \n",
+      " 4   Score on Goodreads  1017 non-null   float64\n",
+      "dtypes: float64(2), int64(1), object(2)\n",
+      "memory usage: 39.9+ KB\n"
+     ]
+    }
+   ],
+   "source": [
+    "books_df.info()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "4ec677b4",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.839650Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.839272Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.846460Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.845175Z"
+    },
+    "papermill": {
+     "duration": 0.017189,
+     "end_time": "2024-04-21T16:49:04.848503",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.831314",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(1017, 5)"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "books_df.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "f57a62b1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.863165Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.862714Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.872565Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.871370Z"
+    },
+    "papermill": {
+     "duration": 0.020369,
+     "end_time": "2024-04-21T16:49:04.875261",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.854892",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Book Name             0\n",
+       "Author                0\n",
+       "Average Rating        0\n",
+       "Number of Ratings     0\n",
+       "Score on Goodreads    0\n",
+       "dtype: int64"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "books_df.isnull().sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "5f3be7e7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.891812Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.890995Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.898103Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.896769Z"
+    },
+    "papermill": {
+     "duration": 0.01809,
+     "end_time": "2024-04-21T16:49:04.900374",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.882284",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "No. of Author in the list: 685\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"No. of Author in the list:\", books_df.Author.nunique())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "47892c8d",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.914721Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.914324Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.922203Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.920927Z"
+    },
+    "papermill": {
+     "duration": 0.017596,
+     "end_time": "2024-04-21T16:49:04.924380",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.906784",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "optional = books_df.groupby('Author')['Book Name'].agg(No_Books='count')#.sort_values(ascending=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "e1027291",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.939248Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.938816Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.946359Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.945209Z"
+    },
+    "papermill": {
+     "duration": 0.017736,
+     "end_time": "2024-04-21T16:49:04.948668",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.930932",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "optional = optional[optional['No_Books']>3]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "95435057",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.964949Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.964232Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.971870Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.970819Z"
+    },
+    "papermill": {
+     "duration": 0.017959,
+     "end_time": "2024-04-21T16:49:04.974061",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.956102",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Agatha Christie',\n",
+       " 'André Gide',\n",
+       " 'Anthony Powell',\n",
+       " 'Charles Dickens',\n",
+       " 'Cormac McCarthy',\n",
+       " 'D.H. Lawrence',\n",
+       " 'Dashiell Hammett',\n",
+       " 'Elizabeth Gaskell',\n",
+       " 'Evelyn Waugh',\n",
+       " 'Fyodor Dostoevsky',\n",
+       " 'George Eliot',\n",
+       " 'Graham Greene',\n",
+       " 'H.G. Wells',\n",
+       " 'Henry James',\n",
+       " 'Honoré de Balzac',\n",
+       " 'J.G. Ballard',\n",
+       " 'Jane Austen',\n",
+       " 'John Updike',\n",
+       " 'Joseph Conrad',\n",
+       " 'Mark Twain',\n",
+       " 'Michael Dibdin',\n",
+       " 'Muriel Spark',\n",
+       " 'P.G. Wodehouse',\n",
+       " 'Saul Bellow',\n",
+       " 'Thomas Hardy',\n",
+       " 'Thomas Mann',\n",
+       " 'Thomas Pynchon',\n",
+       " 'Tobias Smollett',\n",
+       " 'Ursula K. Le Guin',\n",
+       " 'Vladimir Nabokov',\n",
+       " 'Willa Cather',\n",
+       " 'Émile Zola']"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Top_Writers_list=optional.index.tolist()\n",
+    "Top_Writers_list"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "2737f3b7",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:04.989093Z",
+     "iopub.status.busy": "2024-04-21T16:49:04.988700Z",
+     "iopub.status.idle": "2024-04-21T16:49:04.995204Z",
+     "shell.execute_reply": "2024-04-21T16:49:04.994089Z"
+    },
+    "papermill": {
+     "duration": 0.017037,
+     "end_time": "2024-04-21T16:49:04.997963",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:04.980926",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "32"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(Top_Writers_list)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "4ee7ad51",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.013847Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.013245Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.026645Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.025040Z"
+    },
+    "papermill": {
+     "duration": 0.02393,
+     "end_time": "2024-04-21T16:49:05.028927",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.004997",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "Books_of_topWriters = books_df[books_df['Author'].isin(Top_Writers_list)].reset_index()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "b6c8c2bf",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.044127Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.043759Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.057593Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.056348Z"
+    },
+    "papermill": {
+     "duration": 0.024958,
+     "end_time": "2024-04-21T16:49:05.060640",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.035682",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>index</th>\n",
+       "      <th>Book Name</th>\n",
+       "      <th>Author</th>\n",
+       "      <th>Average Rating</th>\n",
+       "      <th>Number of Ratings</th>\n",
+       "      <th>Score on Goodreads</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>2</td>\n",
+       "      <td>Pride and Prejudice</td>\n",
+       "      <td>Jane Austen</td>\n",
+       "      <td>4.29</td>\n",
+       "      <td>4273146</td>\n",
+       "      <td>15135.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>15</td>\n",
+       "      <td>Crime and Punishment</td>\n",
+       "      <td>Fyodor Dostoevsky</td>\n",
+       "      <td>4.27</td>\n",
+       "      <td>905025</td>\n",
+       "      <td>7116.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>20</td>\n",
+       "      <td>The Adventures of Huckleberry Finn</td>\n",
+       "      <td>Mark Twain</td>\n",
+       "      <td>3.83</td>\n",
+       "      <td>1266004</td>\n",
+       "      <td>6432.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>23</td>\n",
+       "      <td>Great Expectations</td>\n",
+       "      <td>Charles Dickens</td>\n",
+       "      <td>3.79</td>\n",
+       "      <td>803182</td>\n",
+       "      <td>5961.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>32</td>\n",
+       "      <td>Sense and Sensibility</td>\n",
+       "      <td>Jane Austen</td>\n",
+       "      <td>4.08</td>\n",
+       "      <td>1190719</td>\n",
+       "      <td>4828.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   index                           Book Name             Author  \\\n",
+       "0      2                 Pride and Prejudice        Jane Austen   \n",
+       "1     15                Crime and Punishment  Fyodor Dostoevsky   \n",
+       "2     20  The Adventures of Huckleberry Finn         Mark Twain   \n",
+       "3     23                  Great Expectations    Charles Dickens   \n",
+       "4     32               Sense and Sensibility        Jane Austen   \n",
+       "\n",
+       "   Average Rating  Number of Ratings  Score on Goodreads  \n",
+       "0            4.29            4273146             15135.0  \n",
+       "1            4.27             905025              7116.0  \n",
+       "2            3.83            1266004              6432.0  \n",
+       "3            3.79             803182              5961.0  \n",
+       "4            4.08            1190719              4828.0  "
+      ]
+     },
+     "execution_count": 13,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Books_of_topWriters.head()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "3ed2857c",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.079438Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.078906Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.088574Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.086575Z"
+    },
+    "papermill": {
+     "duration": 0.02316,
+     "end_time": "2024-04-21T16:49:05.091492",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.068332",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Mean Rating of All Books: 3.867099311701082\n",
+      "Mean Rating of Books from Top Writers: 3.8641772151898732\n"
+     ]
+    }
+   ],
+   "source": [
+    "All_booksMeanRate = books_df['Average Rating'].mean()\n",
+    "topWriters_booksMeanRate = Books_of_topWriters['Average Rating'].mean()\n",
+    "\n",
+    "print('Mean Rating of All Books:', All_booksMeanRate)\n",
+    "print('Mean Rating of Books from Top Writers:', topWriters_booksMeanRate)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "cb59c5f1",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.107795Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.107382Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.113892Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.113057Z"
+    },
+    "papermill": {
+     "duration": 0.017706,
+     "end_time": "2024-04-21T16:49:05.116220",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.098514",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Max Rating of All Books: 4.6\n",
+      "Max Rating of Books from Top Writers: 4.41\n"
+     ]
+    }
+   ],
+   "source": [
+    "MaxRating_AllBooks = books_df['Average Rating'].max()\n",
+    "MaxRating_Books_topWriters=Books_of_topWriters['Average Rating'].max()\n",
+    "\n",
+    "print('Max Rating of All Books:', MaxRating_AllBooks)\n",
+    "print('Max Rating of Books from Top Writers:', MaxRating_Books_topWriters)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "b08d26fd",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.132084Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.131680Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.138125Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.136961Z"
+    },
+    "papermill": {
+     "duration": 0.017291,
+     "end_time": "2024-04-21T16:49:05.140556",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.123265",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Min Rating of All Books: 2.71\n",
+      "Min Rating of Books from Top Writers: 3.23\n"
+     ]
+    }
+   ],
+   "source": [
+    "MinRating_AllBooks = books_df['Average Rating'].min()\n",
+    "MinRating_Books_topWriters=Books_of_topWriters['Average Rating'].min()\n",
+    "\n",
+    "print('Min Rating of All Books:', MinRating_AllBooks)\n",
+    "print('Min Rating of Books from Top Writers:', MinRating_Books_topWriters)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "21b92d37",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.160217Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.159816Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.167642Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.166441Z"
+    },
+    "papermill": {
+     "duration": 0.020539,
+     "end_time": "2024-04-21T16:49:05.170221",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.149682",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Name of the highest Rated Book: The Devil to Pay in the Backlands\n",
+      "Author of the highest Rated Book: João Guimarães Rosa\n"
+     ]
+    }
+   ],
+   "source": [
+    "Highest_RatedBook = books_df[books_df['Average Rating']==MaxRating_AllBooks]['Book Name'].values[0]\n",
+    "Writer_of_HighestRatedBook = books_df[books_df['Average Rating']==MaxRating_AllBooks]['Author'].values[0]\n",
+    "\n",
+    "print(\"Name of the highest Rated Book:\",Highest_RatedBook)\n",
+    "print(\"Author of the highest Rated Book:\", Writer_of_HighestRatedBook)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "344ceb0f",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.187121Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.186702Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.202162Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.200638Z"
+    },
+    "papermill": {
+     "duration": 0.026788,
+     "end_time": "2024-04-21T16:49:05.204729",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.177941",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Book Name</th>\n",
+       "      <th>Author</th>\n",
+       "      <th>Average Rating</th>\n",
+       "      <th>Number of Ratings</th>\n",
+       "      <th>Score on Goodreads</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>944</th>\n",
+       "      <td>The Devil to Pay in the Backlands</td>\n",
+       "      <td>João Guimarães Rosa</td>\n",
+       "      <td>4.6</td>\n",
+       "      <td>5382</td>\n",
+       "      <td>25.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                             Book Name               Author  Average Rating  \\\n",
+       "944  The Devil to Pay in the Backlands  João Guimarães Rosa             4.6   \n",
+       "\n",
+       "     Number of Ratings  Score on Goodreads  \n",
+       "944               5382                25.0  "
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "books_df[books_df['Author']==Writer_of_HighestRatedBook]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "id": "63d8d451",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.222218Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.221818Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.230491Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.229242Z"
+    },
+    "papermill": {
+     "duration": 0.020845,
+     "end_time": "2024-04-21T16:49:05.232869",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.212024",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Name of the highest Rated Book: Moon Over Africa\n",
+      "Author of the highest Rated Book: Ida Pollock\n"
+     ]
+    }
+   ],
+   "source": [
+    "Lowest_RatedBook = books_df[books_df['Average Rating']==MinRating_AllBooks]['Book Name'].values[0]\n",
+    "Writer_of_LowestRatedBook = books_df[books_df['Average Rating']==MinRating_AllBooks]['Author'].values[0]\n",
+    "\n",
+    "print(\"Name of the highest Rated Book:\",Lowest_RatedBook)\n",
+    "print(\"Author of the highest Rated Book:\", Writer_of_LowestRatedBook)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "id": "aacca156",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.250407Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.249693Z",
+     "iopub.status.idle": "2024-04-21T16:49:05.263539Z",
+     "shell.execute_reply": "2024-04-21T16:49:05.262510Z"
+    },
+    "papermill": {
+     "duration": 0.02561,
+     "end_time": "2024-04-21T16:49:05.266019",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.240409",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Book Name</th>\n",
+       "      <th>Author</th>\n",
+       "      <th>Average Rating</th>\n",
+       "      <th>Number of Ratings</th>\n",
+       "      <th>Score on Goodreads</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>600</th>\n",
+       "      <td>Moon Over Africa</td>\n",
+       "      <td>Ida Pollock</td>\n",
+       "      <td>2.71</td>\n",
+       "      <td>21</td>\n",
+       "      <td>97.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "            Book Name       Author  Average Rating  Number of Ratings  \\\n",
+       "600  Moon Over Africa  Ida Pollock            2.71                 21   \n",
+       "\n",
+       "     Score on Goodreads  \n",
+       "600                97.0  "
+      ]
+     },
+     "execution_count": 20,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "books_df[books_df['Author']==Writer_of_LowestRatedBook]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f70d7a4d",
+   "metadata": {
+    "papermill": {
+     "duration": 0.008443,
+     "end_time": "2024-04-21T16:49:05.282965",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.274522",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "57847a0f",
+   "metadata": {
+    "papermill": {
+     "duration": 0.007833,
+     "end_time": "2024-04-21T16:49:05.299300",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.291467",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "id": "4bd99cd3",
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2024-04-21T16:49:05.317380Z",
+     "iopub.status.busy": "2024-04-21T16:49:05.316976Z",
+     "iopub.status.idle": "2024-04-21T16:49:07.106963Z",
+     "shell.execute_reply": "2024-04-21T16:49:07.105710Z"
+    },
+    "papermill": {
+     "duration": 1.802289,
+     "end_time": "2024-04-21T16:49:07.109570",
+     "exception": false,
+     "start_time": "2024-04-21T16:49:05.307281",
+     "status": "completed"
+    },
+    "tags": []
+   },
+   "outputs": [
+    {
+     "data": {
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAAggAAAHHCAYAAADaqqCfAAAAOXRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjcuNSwgaHR0cHM6Ly9tYXRwbG90bGliLm9yZy/xnp5ZAAAACXBIWXMAAA9hAAAPYQGoP6dpAAApZ0lEQVR4nO3deXQUdb7//1d3IAshCSAEiAQEZAAdkMsqIJswQMCROILDpskF1K8jIIqD6MgiOILAEVEc9SoQBkGOckXPVbYwA3hHGAQBWVxGkW1YlSUJSwKkP78/uN2/dD6dpDsL6SbPxzk5kupPVb3fXV1VL6u6Ow5jjBEAAEAezvIuAAAABB8CAgAAsBAQAACAhYAAAAAsBAQAAGAhIAAAAAsBAQAAWAgIAADAQkAAAAAWAgIQhBwOh6ZOnVreZXjZtm2bOnXqpOjoaDkcDu3atau8S5IkpaWlyeFw6ODBg+VdCnBDISCgQnGfTPL+xMfHq0ePHlq9enV5l1di33zzjaZOnVrqJ8srV65o0KBBOnPmjObOnaslS5aoQYMGPsdu3LjR6/kNCwtTfHy8Bg4cqG+//bbYNbz00kv6+OOPiz0/gMBUKu8CgPIwbdo0NWzYUMYYnTx5UmlpaerXr5/+53/+R/fcc095l1ds33zzjV544QV1795dt9xyS6ktd//+/Tp06JDeeecdjRo1yq95xo4dq3bt2unKlSvavXu33nrrLW3cuFF79+5VnTp1Aq7hpZde0sCBA5WcnOw1/cEHH9TgwYMVERER8DIBFIyAgAopKSlJbdu29fw+cuRI1a5dW++//35IB4SycurUKUlStWrV/J6nS5cuGjhwoOf3pk2b6rHHHtNf//pXTZgwodRqCwsLU1hYWKktD8A13GIAdO3EFxUVpUqVvDPzhQsXNH78eCUmJioiIkJNmzbVnDlz5P4jqJcuXVKzZs3UrFkzXbp0yTPfmTNnVLduXXXq1Em5ubmSpNTUVFWtWlU//fST+vTpo+joaCUkJGjatGny54+q7ty5U0lJSYqNjVXVqlXVs2dP/fOf//Q8npaWpkGDBkmSevTo4bnEv3HjxkKX+/e//11dunRRdHS0qlWrpgEDBnjdCkhNTVW3bt0kSYMGDZLD4VD37t2LrDe/Ll26SLp2NSKvOXPmqFOnTrrpppsUFRWlNm3aaMWKFV5jHA6HLly4oMWLF3v6Sk1N9fSd/z0It9xyi+655x794x//UPv27RUZGalGjRrpr3/9q1XX7t271a1bN0VFRalevXp68cUXtWjRImuZ27dvV58+fVSzZk1FRUWpYcOGGjFiRMDPAxAquIKACikjI0O//PKLjDE6deqUXn/9dZ0/f17Dhw/3jDHG6N5779WGDRs0cuRItWrVSmvXrtUf//hHHT16VHPnzlVUVJQWL16szp07609/+pNeeeUVSdLjjz+ujIwMpaWlef3fbW5urvr27as777xTs2bN0po1azRlyhRdvXpV06ZNK7Deffv2qUuXLoqNjdWECRNUuXJlvf322+revbs2bdqkDh06qGvXrho7dqxee+01Pffcc2revLkkef7ry/r165WUlKRGjRpp6tSpunTpkl5//XV17txZO3bs0C233KJHH31UN998s1566SXPbYPatWsH/Jy7T7bVq1f3mj5v3jzde++9GjZsmC5fvqzly5dr0KBB+vTTT9W/f39J0pIlSzRq1Ci1b99ejzzyiCSpcePGha7vxx9/1MCBAzVy5EilpKRo4cKFSk1NVZs2bXT77bdLko4ePeoJU88++6yio6P17rvvWrcrTp06pd69e6tWrVqaOHGiqlWrpoMHD+qjjz4K+HkAQoYBKpBFixYZSdZPRESESUtL8xr78ccfG0nmxRdf9Jo+cOBA43A4zI8//uiZ9uyzzxqn02k+//xz8+GHHxpJ5tVXX/WaLyUlxUgyY8aM8UxzuVymf//+Jjw83Pz888+e6ZLMlClTPL8nJyeb8PBws3//fs+0Y8eOmZiYGNO1a1fPNPe6N2zY4Nfz0apVKxMfH29Onz7tmfb1118bp9NpHnroIc+0DRs2GEnmww8/LHKZ7rELFy40P//8szl27JhZs2aNufXWW43D4TBffvml1/iLFy96/X758mXz61//2tx9991e06Ojo01KSoq1Pvc2PXDggGdagwYNjCTz+eefe6adOnXKREREmPHjx3umjRkzxjgcDrNz507PtNOnT5saNWp4LXPlypVGktm2bVuR/QM3Cm4xoEJ64403lJ6ervT0dL333nvq0aOHRo0a5fV/hKtWrVJYWJjGjh3rNe/48eNljPH61MPUqVN1++23KyUlRX/4wx/UrVs3az630aNHe/7tcDg0evRoXb58WevXr/c5Pjc3V+vWrVNycrIaNWrkmV63bl0NHTpU//jHP5SZmRnwc3D8+HHt2rVLqampqlGjhmd6y5Yt9Zvf/EarVq0KeJl5jRgxQrVq1VJCQoL69u2rjIwMLVmyRO3atfMaFxUV5fn32bNnlZGRoS5dumjHjh0lWv9tt93mua0hSbVq1VLTpk31008/eaatWbNGHTt2VKtWrTzTatSooWHDhnkty/3ei08//VRXrlwpUV1AqCAgoEJq3769evXqpV69emnYsGH67LPPdNttt3lO1pJ06NAhJSQkKCYmxmte9yX7Q4cOeaaFh4dr4cKFOnDggLKysjz3sPNzOp1eJ3lJ+tWvfiVJBX408eeff9bFixfVtGlT67HmzZvL5XLpyJEj/jf/f9z1F7TcX375RRcuXAh4uW6TJ09Wenq6Vq5cqYceekgZGRlyOu1Dzqeffqo777xTkZGRqlGjhmrVqqU333xTGRkZxV63JNWvX9+aVr16dZ09e9bz+6FDh3Trrbda4/JP69atm+6//3698MILqlmzpgYMGKBFixYpJyenRDUCwYyAAOjaibtHjx46fvy4fvjhh2ItY+3atZKk7OzsYi/jRtKiRQv16tVLycnJWrx4se699149/PDDXmHmf//3f3XvvfcqMjJSf/nLX7Rq1Sqlp6dr6NChfr1xszAFfbKhOMt1OBxasWKFtmzZotGjR+vo0aMaMWKE2rRpo/Pnz5eoTiBYERCA/3P16lVJ8hzwGzRooGPHjikrK8tr3Hfffed53G337t2aNm2a/vM//1P/8R//oVGjRvn8P2CXy+V1iVuS/vWvf0lSgd9bUKtWLVWpUkXff/+99dh3330np9OpxMRESfJ51aIg7voLWm7NmjUVHR3t9/KKMnPmTGVnZ+vPf/6zZ9p///d/KzIyUmvXrtWIESOUlJSkXr16+Zw/kN781aBBA/3444/WdF/TJOnOO+/Un//8Z23fvl1Lly7Vvn37tHz58lKvCwgGBARA174pcN26dQoPD/fcQujXr59yc3M1f/58r7Fz586Vw+FQUlKSZ97U1FQlJCRo3rx5SktL08mTJ/Xkk0/6XFfe5RljNH/+fFWuXFk9e/b0OT4sLEy9e/fWJ5984nUb4uTJk1q2bJnuuusuxcbGSpLnhH7u3Lkie65bt65atWqlxYsXe43fu3ev1q1bp379+hW5jEA0btxY999/v9LS0nTixAlJ13pzOByej4JK1261+PrGxOjoaL/6CkSfPn20ZcsWr6+NPnPmjJYuXeo17uzZs9aVB/f7FrjNgBsVH3NEhbR69WrPlYBTp05p2bJl+uGHHzRx4kTPyfa3v/2tevTooT/96U86ePCg7rjjDq1bt06ffPKJxo0b5/mY3Ysvvqhdu3bpb3/7m2JiYtSyZUtNnjxZzz//vAYOHOh1oo2MjNSaNWuUkpKiDh06aPXq1frss8/03HPPqVatWgXW++KLLyo9PV133XWX/vCHP6hSpUp6++23lZOTo1mzZnnGtWrVSmFhYXr55ZeVkZGhiIgI3X333YqPj/e53NmzZyspKUkdO3bUyJEjPR9zjIuLK5O/BfHHP/5RH3zwgV599VXNnDlT/fv31yuvvKK+fftq6NChOnXqlN544w3deuut2r17t9e8bdq00fr16/XKK68oISFBDRs2VIcOHUpUz4QJE/Tee+/pN7/5jcaMGeP5mGP9+vV15swZz1WLxYsX6y9/+Yvuu+8+NW7cWFlZWXrnnXcUGxtb6kEKCBrl+hkK4Drz9THHyMhI06pVK/Pmm28al8vlNT4rK8s8+eSTJiEhwVSuXNk0adLEzJ492zPuq6++MpUqVfL66KIxxly9etW0a9fOJCQkmLNnzxpjrn3MMTo62uzfv9/07t3bVKlSxdSuXdtMmTLF5Obmes2vfB9zNMaYHTt2mD59+piqVauaKlWqmB49epjNmzdbPb7zzjumUaNGJiwszK+PPK5fv9507tzZREVFmdjYWPPb3/7WfPPNN15jivMxx4LGdu/e3cTGxppz584ZY4xZsGCBadKkiYmIiDDNmjUzixYtMlOmTDH5D0/fffed6dq1q4mKijKSPB95LOhjjv3797fW3a1bN9OtWzevaTt37jRdunQxERERpl69embGjBnmtddeM5LMiRMnjDHXnvshQ4aY+vXrm4iICBMfH2/uueces3379iKfDyBUOYwp4TuBAPglNTVVK1as4E1tIWDcuHF6++23df78eb7GGRUW70EAUKHl/YpsSTp9+rSWLFmiu+66i3CACo33IACo0Dp27Kju3burefPmOnnypBYsWKDMzExNmjSpvEsDyhUBAUCF1q9fP61YsUL/9V//JYfDodatW2vBggXq2rVreZcGlCvegwAAACy8BwEAAFgICAAAwFLs9yC4XC4dO3ZM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QABuQHv37tXmzZsVHh4uScrOzlabNm302Wefae/evXrkkUf04IMP6ssvv5QkzZs3Tx07dtTDDz+s48eP6/jx40pMTPS57IsXL2rOnDlasmSJPv/8cx0+fFhPP/205/GXX35ZS5cu1aJFi/TFF18oMzNTH3/8cZn3DKB0cYsBuEF8+umnqlq1qq5evaqcnBw5nU7Nnz9fknTzzTd7ncTHjBmjtWvX6oMPPlD79u0VFxen8PBwValSpchbCleuXNFbb72lxo0bS5JGjx6tadOmeR5//fXX9eyzz+q+++6TJM2fP1+rVq0q7XYBlDECAnCD6NGjh958801duHBBc+fOVaVKlXT//fdLknJzc/XSSy/pgw8+0NGjR3X58mXl5OSoSpUqAa+nSpUqnnAgSXXr1tWpU6ckSRkZGTp58qTat2/veTwsLExt2rSRy+UqYYcAriduMQA3iOjoaN1666264447tHDhQm3dulULFiyQJM2ePVvz5s3TM888ow0bNmjXrl3q06ePLl++HPB6Kleu7PW7w+EQfzUeuPEQEIAbkNPp1HPPPafnn39ely5d0hdffKEBAwZo+PDhuuOOO9SoUSP961//8ponPDxcubm5JVpvXFycateurW3btnmm5ebmaseOHSVaLoDrj4AA3KAGDRqksLAwvfHGG2rSpInS09O1efNmffvtt3r00Ud18uRJr/G33HKLtm7dqoMHD+qXX34p9i2BMWPGaMaMGfrkk0/0/fff64knntDZs2flcDhKoy0A1wkBAbhBVapUSaNHj9asWbM0fvx4tW7dWn369FH37t1Vp04d62OHTz/9tMLCwnTbbbepVq1aOnz4cLHW+8wzz2jIkCF66KGH1LFjR1WtWlV9+vRRZGRkKXQF4HpxGG4eAihDLpdLzZs31wMPPKDp06eXdzkA/MSnGACUqkOHDmndunXq1q2bcnJyNH/+fB04cEBDhw4t79IABIBbDABKldPpVFpamtq1a6fOnTtrz549Wr9+vZo3b17epQEIALcYAACAhSsIAADAQkAAAAAWAgIAALAQEAAAgIWAAAAALAQEAABgISAAAAALAQEAAFgICAAAwPL/ARajIiDAXUkYAAAAAElFTkSuQmCC",
+      "text/plain": [
+       "<Figure size 640x480 with 1 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "import seaborn as sns\n",
+    "import matplotlib.pyplot as plt\n",
+    "\n",
+    "# Assuming books_df['Rating'] contains your ratings data\n",
+    "sns.boxplot(x=books_df['Average Rating'])\n",
+    "plt.xlabel('Rating')\n",
+    "plt.title('Boxplot of Ratings')\n",
+    "plt.show()\n"
+   ]
+  }
+ ],
+ "metadata": {
+  "kaggle": {
+   "accelerator": "none",
+   "dataSources": [
+    {
+     "datasetId": 4819741,
+     "sourceId": 8149618,
+     "sourceType": "datasetVersion"
+    }
+   ],
+   "dockerImageVersionId": 30698,
+   "isGpuEnabled": false,
+   "isInternetEnabled": true,
+   "language": "python",
+   "sourceType": "notebook"
+  },
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.13"
+  },
+  "papermill": {
+   "default_parameters": {},
+   "duration": 7.006115,
+   "end_time": "2024-04-21T16:49:07.739337",
+   "environment_variables": {},
+   "exception": null,
+   "input_path": "__notebook__.ipynb",
+   "output_path": "__notebook__.ipynb",
+   "parameters": {},
+   "start_time": "2024-04-21T16:49:00.733222",
+   "version": "2.5.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
